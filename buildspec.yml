@@ -33,7 +33,7 @@ phases:
       - docker tag $REPOSITORY_URI:prod $REPOSITORY_URI:latest
       - echo Build completed on `date`
       - echo Pushing the Pipeline Docker images...
-      - docker push $REPOSITORY_URI:dev
+#      - docker push $REPOSITORY_URI:dev
       - docker push $REPOSITORY_URI:prod
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - docker push $REPOSITORY_URI:latest
