@@ -1,0 +1,91 @@
+#FROM ubuntu:xenial
+FROM public.ecr.aws/docker/library/ubuntu:xenial
+
+RUN apt-get -qq -y clean \
+ && apt-get -qq -y update \
+ && apt-get -qq -y install software-properties-common python-software-properties apt-transport-https \
+ && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80  --recv-keys 51716619E084DAB9 \
+ && add-apt-repository 'deb http://cloud.r-project.org/bin/linux/ubuntu xenial/'
+
+RUN apt-get -qq -y clean \
+ && apt-get -qq -y update \
+ && apt-get -qq -y install \
+            build-essential \
+            libcurl4-gnutls-dev \
+            libxml2-dev \
+            libssl-dev \
+            unzip
+
+RUN apt-get -qq -y clean \
+ && apt-get -qq -y update \
+ && apt-get -qq -y upgrade \
+ && apt-get -qq -y --fix-missing install \
+            build-essential \
+            default-jre \
+            ess \
+            jq \
+            libcurl4-openssl-dev \
+            libgeos-dev \
+            libssl-dev \
+            python-pip \
+            python3 \
+            python3-pip \
+            python3-boto3 \
+            python3-pandas \
+            r-base-core \
+            r-base-dev \
+ && pip install --upgrade pip==20.3.4 \
+ && apt-get autoclean && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+ && unzip awscliv2.zip \
+ && ./aws/install \
+ && aws --version
+
+ARG AWS_DEFAULT_REGION
+ARG AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+
+RUN R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/findpython/findpython_1.0.3.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/argparser/argparser_0.6.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/getopt/getopt_1.20.2.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/proto_1.0.0.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/jsonlite/jsonlite_1.8.7.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/argparse/argparse_1.1.1.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/gtable/gtable_0.3.0.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/rlang/rlang_0.4.12.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/glue/glue_1.6.0.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/cli/cli_3.1.0.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/lifecycle/lifecycle_1.0.1.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/fansi/fansi_1.0.0.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/utf8/utf8_1.2.2.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/ellipsis_0.3.2.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/vctrs/vctrs_0.3.8.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/bitops_1.0-7.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/RCurl/RCurl_1.95-4.11.tar.gz")' && \
+    R -e 'install.packages("https://cran.r-project.org/src/contrib/Archive/h2o/h2o_3.10.4.4.tar.gz")'
+#RUN Rscript -e "install.packages('devtools', repos='http://cran.rstudio.com/')
+#RUN Rscript -e "require(devtools); devtools::install_version('h2o', repos='https://cran.r-project.org/src/contrib/Archive/h2o/h2o_3.40.0.4.tar.gz')"
+
+COPY requirements-h2o.txt /requirements.txt
+RUN pip install --upgrade pip==20.3.4 && \ 
+    pip install -r requirements.txt && \
+    rm -f requirements.txt
+
+RUN mkdir -p /vsr/tmp
+RUN aws s3 cp s3://ci-cd-pipeline-precision-ag/Model_Management/Mod_5.0_QC5 /vsr/tmp
+#RUN aws s3 cp s3://dsso-ss-analytics/models/Mod_5.0_QC5 /vsr/tmp
+COPY ApiIntegration.py run-h2o.py R /vsr/pipeline/
+
+ARG stage=dev
+ENV STAGE=${stage}
+
+CMD /bin/bash
+
+#FROM public.ecr.aws/docker/library/node:18-alpine
+#WORKDIR /app
+#COPY . .
+#RUN npm install express
+#CMD ["node", "index.js"]
+#EXPOSE 3000
