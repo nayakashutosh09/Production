@@ -10,12 +10,11 @@ phases:
 
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
+            - echo Logging in to Amazon ECR...
       - aws --version
       - echo $AWS_DEFAULT_REGION
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 374898892977.dkr.ecr.us-east-1.amazonaws.com
-#      - H2O_URI=374898892977.dkr.ecr.us-east-1.amazonaws.com/isr-table-generation
-      - H2O_URI=374898892977.dkr.ecr.us-east-1.amazonaws.com/isr-h20-table-generation
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 559866444233.dkr.ecr.us-east-1.amazonaws.com
+      - REPOSITORY_URI=559866444233.dkr.ecr.us-east-1.amazonaws.com/vsr-isr-prod-h2o-repo
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
       - STAGE=${STAGE:=dev}
@@ -27,26 +26,14 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Pipeline Docker image...
-      - echo Building the H2O Docker image...
-#      - docker build -f Dockerfile-h2o --build-arg stage="dev" -t 374898892977.dkr.ecr.us-east-1.amazonaws.com/isr-table-generation:dev .
-#      - docker build -f Dockerfile-h2o --build-arg stage="nonprod" -t 374898892977.dkr.ecr.us-east-1.amazonaws.com/isr-table-generation:nonprod .
-      - >
-        docker build -f Dockerfile-h2o
-        --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
-        --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
-        --build-arg stage="dev"
-        -t $H2O_URI:dev .
-      - >
-        docker build -f Dockerfile-h2o
-        --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
-        --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
-        --build-arg stage="nonprod"
-        -t $H2O_URI:nonprod .
-      - docker tag $H2O_URI:dev $H2O_URI:dev
-      - docker tag $H2O_URI:nonprod $H2O_URI:nonprod
-      - echo Pushing the H2O Docker images...
-      - docker push $H2O_URI:dev
-      - docker push $H2O_URI:nonprod
+      - docker build -f Dockerfile --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION --build-arg stage="prod" -t $REPOSITORY_URI:prod . 
+      - docker tag $REPOSITORY_URI:prod $REPOSITORY_URI:$IMAGE_TAG
+      - docker tag $REPOSITORY_URI:prod $REPOSITORY_URI:latest
+      - echo Build completed on `date`
+      - echo Pushing the Pipeline Docker images...
+      - docker push $REPOSITORY_URI:prod
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:latest
 
   post_build:
     commands:
