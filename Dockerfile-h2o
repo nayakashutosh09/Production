@@ -72,7 +72,6 @@ RUN pip install --upgrade pip==20.3.4 && \
     rm -f requirements.txt
 
 RUN mkdir -p /vsr/tmp
-RUN aws configure list
 RUN aws s3 cp s3://dsso-precision-ag-pipeline-bucket/Model_Management/Mod_5.0_QC5 /vsr/tmp
 COPY ApiIntegration.py run-h2o.py R /vsr/pipeline/
 
