@@ -38,6 +38,6 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo write definitions file...
-      - printf '[{"name":"development_mac","imageUri":"%s"}]' $REPOSITORY_URI:dev > docker_file.json
+      - printf '[{"name":"dsso-precision-ag-service","imageUri":"%s"}]' $REPOSITORY_URI:prod > docker_file.json
 artifacts:
   files: docker_file.json
