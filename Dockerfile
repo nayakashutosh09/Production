@@ -229,7 +229,7 @@ RUN mkdir -p /vsr/tmp
 COPY pipeline-config.json season-config.json ec-config.json scoring-config.json /vsr/tmp/
 COPY R ApiIntegration.py run-engine.py /vsr/pipeline/
 
-ARG stage=dev
+ARG stage=prod
 ENV STAGE=${stage}
 
 CMD /bin/bash
