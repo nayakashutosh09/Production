@@ -235,7 +235,7 @@ RUN mkdir -p /vsr/tmp
 COPY *.json /vsr/tmp/
 COPY R ApiIntegration.py run-engine.py /vsr/pipeline/
 
-ARG stage=dev
+ARG stage=prod
 ENV STAGE=${stage}
 
 CMD ["node", "index.js"]
