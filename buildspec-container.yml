@@ -32,12 +32,9 @@ phases:
         --build-arg stage="prod"
         -t $REPOSITORY_URI:prod .
       - docker tag $REPOSITORY_URI:prod $REPOSITORY_URI:$IMAGE_TAG
-      - docker tag $REPOSITORY_URI:prod $REPOSITORY_URI:latest
       - echo Build completed on `date`
       - echo Pushing the Pipeline Docker images...
       - docker push $REPOSITORY_URI:prod
-#      - docker push $REPOSITORY_URI:$IMAGE_TAG
-#      - docker push $REPOSITORY_URI:latest
   post_build:
     commands:
       - echo Build completed on `date`
