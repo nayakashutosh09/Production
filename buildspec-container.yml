@@ -17,7 +17,7 @@ phases:
       - REPOSITORY_URI=559866444233.dkr.ecr.us-east-1.amazonaws.com/vsr-isr-prod-container-repo
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      - STAGE=${STAGE:=dev}
+      - STAGE=${STAGE:=prod}
       - echo tag is $IMAGE_TAG
       - echo stage is $STAGE
       - echo Testing access
@@ -26,7 +26,11 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image.
-      - docker build -f Dockerfile_Container --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION --build-arg stage="prod" -t $REPOSITORY_URI:prod . 
+      - >
+        docker build -f Dockerfile_Container
+        --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+        --build-arg stage="prod"
+        -t $REPOSITORY_URI:prod .
       - docker tag $REPOSITORY_URI:prod $REPOSITORY_URI:$IMAGE_TAG
       - docker tag $REPOSITORY_URI:prod $REPOSITORY_URI:latest
       - echo Build completed on `date`
